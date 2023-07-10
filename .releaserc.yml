@@ -1,0 +1,12 @@
+branch: master
+tagFormat: "${version}"
+plugins:
+  # Analyzes commits to identify the type of update (ex.: fix -> PATCH, feat -> MINOR...)
+  - "@semantic-release/commit-analyzer"
+
+  # Generates the changelog text and creates a CHANGELOG.md file at each release
+  - "@semantic-release/release-notes-generator"
+  - "@semantic-release/changelog"
+
+  # Publish on GitHub
+  - "@semantic-release/github"

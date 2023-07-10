@@ -1,0 +1,23 @@
+# EXCLUDE -------------------------------------------------------------------
+# Gradle
+.gradle
+build
+gradle.properties
+
+# IntelliJ
+.idea
+
+# Node
+node_modules/*
+
+# Java
+*.class
+*.jar
+hs_err_pid*
+
+# Logs
+*.log
+
+# EXCEPT --------------------------------------------------------------------
+# Gradle
+!gradle-wrapper.jar

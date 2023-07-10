@@ -1,0 +1,52 @@
+name: Test
+on:
+  pull_request:
+    paths-ignore:
+      - "README.md"
+
+jobs:
+    # Test the project
+    test:
+      strategy:
+        matrix:
+          os: [windows, macos, ubuntu]
+          java-version: [8, 11, 17]
+      runs-on: ${{matrix.os}}-latest
+      steps:
+        # Install the specified version of Java in the provided runner
+        - name: Install Java
+          uses: actions/setup-java@v3
+          with:
+            distribution: 'adopt'
+            java-version: ${{matrix.java-version}}
+        # Clone the repository, with full history and submodules
+        - name: Clone Repository
+          uses: actions/checkout@v3
+          with:
+            token: ${{ secrets.GH_TOKEN }}
+            fetch-depth: 0
+            submodules: recursive
+        # Validate the gradle wrapper to void supply chain attacks from pull-request that changes the wrapper
+        - name: Validate Gradle Wrapper
+          uses: gradle/wrapper-validation-action@v1
+        # Run the project tests
+        - name: Test Build
+          run: |
+            chmod 777 ./gradlew
+            ./gradlew test
+
+    # Completes successfully if all previous job were completed successfully
+    success:
+      runs-on: ubuntu-22.04
+      needs:
+        - test
+      # Executes always (even if previous jobs have failed, but not if any of them has been cancelled)
+      if: >-
+        always() && (
+          contains(join(needs.*.result, ','), 'failure')
+          || !contains(join(needs.*.result, ','), 'cancelled')
+        )
+      # Succeeds only if all previous jobs have succeeded
+      steps:
+        - name: Verify that there were no failures
+          run: ${{ !contains(join(needs.*.result, ','), 'failure') }}

@@ -1,0 +1,29 @@
+[versions]
+scala-version = "3.3.0"                             # required to run scala
+scalatest-version = "3.2.15"                        # required to test scala
+scalatestplusjunit-version = "3.2.16.0"             # required to run scalatest directly within IntelliJ
+spotless-version = "6.13.0"                         # required to apply different style checkers within the project
+scalafmt-version = "3.7.1"                          # style checker for scala
+wartremover-version = "0.1.2"                       # code linter for scala
+git-semantic-versioning-version = "1.1.9"           # assigns a project version depending on the existing git tags
+publish-on-central-version = "5.0.7"                # simplifies publishing artifacts on maven central
+# insert the version of the dependencies here...
+
+[libraries]
+scala = { module = "org.scala-lang:scala3-library_3", version.ref = "scala-version" }
+scalatest = { module = "org.scalatest:scalatest_3", version.ref = "scalatest-version" }
+scalatestplusjunit = { module = "org.scalatestplus:junit-4-13_3", version.ref = "scalatestplusjunit-version" }
+scalafmt-cli = { module = "org.scalameta:scalafmt-cli_2.13", version.ref = "scalafmt-version" }
+scalafmt-config = { module = "org.scalameta:scalafmt-config_2.13", version.ref = "scalafmt-version" }
+# insert the dependencies here...
+
+[bundles]
+scalafmt = [ "scalafmt-cli", "scalafmt-config" ]
+# insert groups of dependencies here...
+
+[plugins]
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless-version" }
+wartremover = { id = "io.github.jahrim.wartremover", version.ref = "wartremover-version" }
+publish-on-central = { id = "org.danilopianini.publish-on-central", version.ref = "publish-on-central-version" }
+git-semantic-versioning = { id = "org.danilopianini.git-sensitive-semantic-versioning-gradle-plugin", version.ref = "git-semantic-versioning-version" }
+# insert plugins here...
