@@ -1,11 +1,11 @@
 // ### Project Information #############################################################################################
 private class ProjectInfo { // TODO change project info
     companion object {
-        const val longName: String = "Scala 3 Project Template"
-        const val description: String = "A template for configuring Scala 3 projects."
+        const val longName: String = "Chess Authentication service"
+        const val description: String = "The service which handles the authentication to the application."
 
-        const val repositoryOwner: String = "jahrim"
-        const val repositoryName: String = "scala3-project-template"
+        const val repositoryOwner: String = "madina"
+        const val repositoryName: String = "authentication-service"
 
         const val artifactGroup: String = "io.github.jahrim"
         const val artifactId: String = "scala3-project-template"
@@ -36,13 +36,22 @@ repositories { mavenCentral() }
 dependencies {
     compileOnly(libs.bundles.scalafmt)
     implementation(libs.scala)
+    implementation(libs.vertx.web)
+    implementation(libs.hexarc)
+    implementation(libs.bcrypt)
+    implementation(libs.jwt)
     testImplementation(libs.scalatest)
     testImplementation(libs.scalatestplusjunit)
 }
 
 application {
     mainClass.set(ProjectInfo.implementationClass)
+    val mongoDBConnection: String? by project
+    tasks.withType(JavaExec::class.java) {
+        mongoDBConnection?.apply { args(this) }
+    }
 }
+
 
 spotless {
     isEnforceCheck = false
@@ -80,9 +89,9 @@ publishing {
                 // TODO change developers
                 developers {
                     developer {
-                        name.set("Jahrim Gabriele Cesario")
-                        email.set("jahrim.cesario2@studio.unibo.it")
-                        url.set("https://jahrim.github.io")
+                        name.set("Madina Kentpayeva")
+                        email.set("madina.kentpayeva@studio.unibo.it")
+                        url.set("https://madina9229.github.io")
                     }
                 }
             }
