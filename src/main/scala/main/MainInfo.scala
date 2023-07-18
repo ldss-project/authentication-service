@@ -1,3 +1,4 @@
+///*
 //package main
 //
 //import at.favre.lib.crypto.bcrypt.BCrypt
@@ -11,7 +12,7 @@
 //import io.github.jahrim.hexarc.persistence.bson.dsl.BsonDSL.{*, given}
 //
 //import java.sql.Timestamp
-//import java.time.{Instant, ZonedDateTime}
+//import java.time.Instant
 //import java.time.temporal.ChronoUnit
 //import java.util.Date
 //import java.util.UUID
@@ -23,7 +24,7 @@
 //
 //import java.nio.charset.StandardCharsets
 //
-//@main def registerUser(args: String*): Unit =
+//@main def getUserInfo(args: String*): Unit =
 //  val arguments: Args = Args(args)
 //  val connectionString: String = arguments.mongoDBConnection()
 //
@@ -47,20 +48,11 @@
 //
 //  println("after")
 //
-//  val hashString = BCrypt.withDefaults.hashToString(10, "passFreddie".toCharArray)
-//  println(hashString)
-//
-//  val randomToken = UUID.randomUUID().toString
-//  println(s"randomToken: $randomToken")
-//
-//  val user = bson {
-//    "username" :: "freddiemerc"
-//    "password" :: hashString
-//    "email" :: "freddiemerc@mail.com"
-//    "token" :: bson {
-//      "id" :: randomToken
-//      "expiration" :: ZonedDateTime.now.plus(30, ChronoUnit.MINUTES)
+//  val userInfo =
+//    Option(users.get.find(bson { "username" :: "freddiemerc" }).first()).getOrElse {
+//      throw UserNotFoundException()
 //    }
-//  }
-//
-//  users.get.insertOne(user)
+//  println(userInfo)
+//  println(userInfo.require("username").as[String])
+//  println(userInfo.require("email").as[String])
+//*/

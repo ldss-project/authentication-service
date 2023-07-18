@@ -1,23 +1,22 @@
 // ### Project Information #############################################################################################
 private class ProjectInfo { // TODO change project info
-    companion object {
-        const val longName: String = "Chess Authentication service"
-        const val description: String = "The service which handles the authentication to the application."
+    val longName: String = "Chess Authentication service"
+    val description: String = "The service which handles the authentication to the application."
 
-        const val repositoryOwner: String = "madina"
-        const val repositoryName: String = "authentication-service"
+    val repositoryOwner: String = "madina"
+    val repositoryName: String = "authentication-service"
 
-        const val artifactGroup: String = "io.github.jahrim"
-        const val artifactId: String = "scala3-project-template"
-        const val implementationClass: String = "main.MainClass"
+    val artifactGroup: String = "io.github.jahrim.chess"
+    val artifactId: String = project.name
+    val implementationClass: String = "io.github.jahrim.chess.authentication.service.main.main"
 
-        const val license = "The MIT License"
-        const val licenseUrl = "https://opensource.org/licenses/MIT"
+    val license = "The MIT License"
+    val licenseUrl = "https://opensource.org/licenses/MIT"
 
-        val website = "https://github.com/$repositoryOwner/$repositoryName"
-        val tags = listOf("scala3", "project template")
-    }
+    val website = "https://github.com/$repositoryOwner/$repositoryName"
+    val tags = listOf("scala3", "chess", "authentication")
 }
+private val projectInfo: ProjectInfo = ProjectInfo()
 
 // ### Build Configuration #############################################################################################
 plugins {
@@ -36,19 +35,27 @@ repositories { mavenCentral() }
 dependencies {
     compileOnly(libs.bundles.scalafmt)
     implementation(libs.scala)
+    implementation(libs.scallop)
     implementation(libs.vertx.web)
     implementation(libs.hexarc)
     implementation(libs.bcrypt)
-    implementation(libs.jwt)
     testImplementation(libs.scalatest)
     testImplementation(libs.scalatestplusjunit)
 }
 
 application {
-    mainClass.set(ProjectInfo.implementationClass)
+    mainClass.set(projectInfo.implementationClass)
+    val httpHost: String? by project
+    val httpPort: String? by project
     val mongoDBConnection: String? by project
-    tasks.withType(JavaExec::class.java) {
-        mongoDBConnection?.apply { args(this) }
+    val mongoDBDatabase: String? by project
+    val mongoDBCollection: String? by project
+    tasks.withType(JavaExec::class.java){
+        httpHost?.apply { args("--http-host", this) }
+        httpPort?.apply { args("--http-port", this) }
+        mongoDBConnection?.apply { args("--mongodb-connection", this) }
+        mongoDBDatabase?.apply { args("--mongodb-database", this) }
+        mongoDBCollection?.apply { args("--mongodb-collection", this) }
     }
 }
 
@@ -60,7 +67,7 @@ spotless {
 }
 
 // ### Publishing ######################################################################################################
-group = ProjectInfo.artifactGroup
+group = projectInfo.artifactGroup
 gitSemVer {
     buildMetadataSeparator.set("-")
     assignGitSemanticVersion()
@@ -73,12 +80,12 @@ tasks.javadocJar {
 
 publishOnCentral {
     configureMavenCentral.set(true)
-    projectDescription.set(ProjectInfo.description)
-    projectLongName.set(ProjectInfo.longName)
-    licenseName.set(ProjectInfo.license)
-    licenseUrl.set(ProjectInfo.licenseUrl)
-    repoOwner.set(ProjectInfo.repositoryOwner)
-    projectUrl.set(ProjectInfo.website)
+    projectDescription.set(projectInfo.description)
+    projectLongName.set(projectInfo.longName)
+    licenseName.set(projectInfo.license)
+    licenseUrl.set(projectInfo.licenseUrl)
+    repoOwner.set(projectInfo.repositoryOwner)
+    projectUrl.set(projectInfo.website)
     scmConnection.set("scm:git:$projectUrl")
 }
 
