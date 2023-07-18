@@ -11,7 +11,7 @@
 //import io.github.jahrim.hexarc.persistence.bson.dsl.BsonDSL.{*, given}
 //
 //import java.sql.Timestamp
-//import java.time.{Instant, ZonedDateTime}
+//import java.time.Instant
 //import java.time.temporal.ChronoUnit
 //import java.util.Date
 //import java.util.UUID
@@ -23,7 +23,7 @@
 //
 //import java.nio.charset.StandardCharsets
 //
-//@main def registerUser(args: String*): Unit =
+//@main def updateUserPassword(args: String*): Unit =
 //  val arguments: Args = Args(args)
 //  val connectionString: String = arguments.mongoDBConnection()
 //
@@ -47,20 +47,14 @@
 //
 //  println("after")
 //
-//  val hashString = BCrypt.withDefaults.hashToString(10, "passFreddie".toCharArray)
-//  println(hashString)
+//  val hash = BCrypt.withDefaults.hashToString(10, "passFreddie1".toCharArray)
+//  println(hash)
 //
-//  val randomToken = UUID.randomUUID().toString
-//  println(s"randomToken: $randomToken")
-//
-//  val user = bson {
-//    "username" :: "freddiemerc"
-//    "password" :: hashString
-//    "email" :: "freddiemerc@mail.com"
-//    "token" :: bson {
-//      "id" :: randomToken
-//      "expiration" :: ZonedDateTime.now.plus(30, ChronoUnit.MINUTES)
-//    }
-//  }
-//
-//  users.get.insertOne(user)
+//  Option(
+//    users.get.updateOne(
+//      Filters.eq("username", "freddiemerc"),
+//      combine(
+//        set("password", hash)
+//      )
+//    )
+//  ).filter(_.getMatchedCount > 0).getOrElse { throw UserNotFoundException() }

@@ -1,8 +1,8 @@
-package service
-import service.AuthenticationPort.*
-import io.vertx.core.Future
-import service.AuthenticationPort
+package io.github.jahrim.chess.authentication.service.components.ports
+
+import io.github.jahrim.chess.authentication.service.components.ports.AuthenticationPort.*
 import io.github.jahrim.hexarc.architecture.vertx.core.components.Port
+import io.vertx.core.Future
 trait AuthenticationPort extends Port:
   def registerUser(username: String, email: String, password: String): Future[String]
   def loginUser(username: String, password: String): Future[String]

@@ -7,10 +7,10 @@ scalafmt-version = "3.7.1"                          # style checker for scala
 wartremover-version = "0.1.2"                       # code linter for scala
 git-semantic-versioning-version = "1.1.9"           # assigns a project version depending on the existing git tags
 publish-on-central-version = "5.0.7"                # simplifies publishing artifacts on maven central
+scallop-version = "4.1.0"                           # cli argument parser for scala
 vertx-version = "4.4.4"                             # event-loop architecture framework
 hexarc-version = "0.4.0"                            # hexagonal architecture framework
 scala-bcrypt-version = "0.10.2"                     # scala bcrypt password hashing
-jwt-version = "0.9.1"                               # JSON Web Token
 # insert the version of the dependencies here...
 
 [libraries]
@@ -19,10 +19,10 @@ scalatest = { module = "org.scalatest:scalatest_3", version.ref = "scalatest-ver
 scalatestplusjunit = { module = "org.scalatestplus:junit-4-13_3", version.ref = "scalatestplusjunit-version" }
 scalafmt-cli = { module = "org.scalameta:scalafmt-cli_2.13", version.ref = "scalafmt-version" }
 scalafmt-config = { module = "org.scalameta:scalafmt-config_2.13", version.ref = "scalafmt-version" }
+scallop = { module = "org.rogach:scallop_3", version.ref = "scallop-version" }
 vertx-web = {module = "io.vertx:vertx-web", version.ref = "vertx-version" }
 hexarc = { module = "io.github.jahrim:hexarc", version.ref = "hexarc-version" }
 bcrypt = { module = "at.favre.lib:bcrypt", version.ref = "scala-bcrypt-version"}
-jwt = {module = "io.jsonwebtoken:jjwt", version.ref = "jwt-version"}
 # insert the dependencies here...
 
 [bundles]
