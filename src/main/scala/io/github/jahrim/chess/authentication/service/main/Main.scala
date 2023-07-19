@@ -37,7 +37,7 @@ import io.vertx.core.Handler
           ).get
         )
 
-        new Adapter(AuthenticationAdapterHttp())
+        new Adapter(AuthenticationHttpAdapter())
   }
 
 /**
