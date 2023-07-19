@@ -6,7 +6,10 @@ import com.mongodb.client.model.Updates.*
 import com.mongodb.client.{MongoClients, MongoCollection}
 import com.mongodb.{ConnectionString, MongoClientSettings, ServerApi, ServerApiVersion}
 import io.github.jahrim.chess.authentication.service.components.exceptions.UserNotFoundException
-import io.github.jahrim.chess.authentication.service.components.ports.AuthenticationPort.User
+import io.github.jahrim.chess.authentication.service.components.exceptions.MalformedInputException
+import io.github.jahrim.chess.authentication.service.components.exceptions.ExpiredTokenException
+import io.github.jahrim.chess.authentication.service.components.exceptions.IncorrectPasswordException
+import io.github.jahrim.chess.authentication.service.components.data.*
 import io.github.jahrim.chess.authentication.service.components.*
 import io.github.jahrim.chess.authentication.service.components.adapters.http.AuthenticationHttpAdapter
 import io.github.jahrim.hexarc.architecture.vertx.core.components.PortContext
@@ -47,45 +50,47 @@ class AuthenticationModel(users: PersistentDocumentCollection) extends Authentic
           }
         })
         .fold(
-          exception => promise.fail(UserNotFoundException()),
+          exception => promise.fail(exception),
           success => promise.complete(randomToken)
         )
     }
   override def loginUser(username: String, password: String): Future[String] =
     context.vertx.executeBlocking { promise =>
       users
-        .read( Filters.eq("username", username))
+        .read(Filters.eq("username", username))
         .fold(
-          exception => promise.fail(UserNotFoundException()),
+          exception => promise.fail(exception),
           userInfos =>
-            println(userInfos)
-            val passwordVerify = BCrypt.verifyer.verify(
-              password.toCharArray,
-              userInfos.head.require("password").as[String]
-            )
-            println(passwordVerify)
-            if passwordVerify.verified then
-              val tokenId: String = UUID.randomUUID().toString
-              users
-                .update(
-                  Filters.eq("username", username),
-                  combine(
-                    set("token.id", tokenId),
-                    set(
-                      "token.expiration",
-                      ZonedDateTime.now.plus(30, ChronoUnit.MINUTES).toInstant
+            if userInfos.nonEmpty then
+              println(userInfos)
+              val passwordVerify = BCrypt.verifyer.verify(
+                password.toCharArray,
+                userInfos.head.require("password").as[String]
+              )
+              println(passwordVerify)
+              if passwordVerify.verified then
+                val tokenId: String = UUID.randomUUID().toString
+                users
+                  .update(
+                    Filters.eq("username", username),
+                    combine(
+                      set("token.id", tokenId),
+                      set(
+                        "token.expiration",
+                        Instant.now.plus(30, ChronoUnit.MINUTES)
+                      )
                     )
                   )
-                )
-                .fold(
-                  exception => promise.fail(exception.getMessage),
-                  success => promise.complete(tokenId)
-                )
-            else promise.fail(IncorrectPasswordException())
+                  .fold(
+                    exception => promise.fail(exception),
+                    success => promise.complete(tokenId)
+                  )
+              else promise.fail(IncorrectPasswordException())
+            else promise.fail(UserNotFoundException())
         )
     }
 
-  override def getUserInformation(username: String): Future[AuthenticationPort.User] =
+  override def getUserInformation(username: String): Future[User] =
     context.vertx.executeBlocking { promise =>
       users
         .read(bson { "username" :: username })
@@ -155,6 +160,7 @@ class AuthenticationModel(users: PersistentDocumentCollection) extends Authentic
             if ZonedDateTime.now().isBefore(date) then {
               println("token is not expired")
               println(userInfo.head.require("username").as[String])
+              promise.fail("token is not expired")
             } else {
               println("token expired!")
               users.update(
@@ -163,7 +169,7 @@ class AuthenticationModel(users: PersistentDocumentCollection) extends Authentic
                   unset("token.id")
                 )
               )
-              promise.complete(userInfo.head.require("username").as[String])
+              promise.complete(userInfo.head.require("username").as[String]) // non visualizza output su postman??
             }
         )
     }
