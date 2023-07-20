@@ -94,7 +94,7 @@ class AuthenticationHttpAdapter(
             context.api.getUserInformation(_)
           }
           .map { user =>
-            bsonToJson(bson {"user" :: user}).encode()
+            bsonToJson(bson { "user" :: user }).encode()
           }
           .onSuccess { json => message.sendJson(json) }
           .onFailure {
