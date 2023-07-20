@@ -11,7 +11,6 @@ import io.github.jahrim.chess.authentication.service.components.exceptions.Expir
 import io.github.jahrim.chess.authentication.service.components.exceptions.IncorrectPasswordException
 import io.github.jahrim.chess.authentication.service.components.data.*
 import io.github.jahrim.chess.authentication.service.components.*
-import io.github.jahrim.chess.authentication.service.components.adapters.http.AuthenticationHttpAdapter
 import io.github.jahrim.chess.authentication.service.components.data.codecs.Codecs.{*, given}
 import io.github.jahrim.hexarc.architecture.vertx.core.components.PortContext
 import io.github.jahrim.hexarc.architecture.vertx.core.dsl.VertxDSL.*
@@ -44,10 +43,9 @@ class AuthenticationModel(users: PersistentCollection with MongoDBQueryLanguage)
       passwordInput: String
   ): Future[String] =
     context.vertx.executeBlocking { promise =>
+      context.log.info(s"Registering user $username...")
       val hashString = BCrypt.withDefaults.hashToString(10, passwordInput.toCharArray)
-      println(hashString)
-      val randomToken = UUID.randomUUID().toString
-      println(s"randomToken: $randomToken")
+      val randomToken = UUID.randomUUID.toString
       users
         .create(
           CreateQuery(
@@ -62,10 +60,19 @@ class AuthenticationModel(users: PersistentCollection with MongoDBQueryLanguage)
             }
           )
         )
-        .fold(exception => promise.fail(exception), success => promise.complete(randomToken))
+        .fold(
+          exception =>
+            promise.fail(exception)
+            context.log.info(s"Failed registering user $username.")
+          ,
+          success =>
+            promise.complete(randomToken)
+            context.log.info(s"User $username successfully registered.")
+        )
     }
   override def loginUser(username: String, password: String): Future[String] =
     context.vertx.executeBlocking { promise =>
+      context.log.info(s"Logging user $username...")
       users
         .read(
           ReadQuery(
@@ -77,12 +84,10 @@ class AuthenticationModel(users: PersistentCollection with MongoDBQueryLanguage)
           exception => promise.fail(exception),
           userInfos =>
             if userInfos.nonEmpty then
-              println(userInfos)
               val passwordVerify = BCrypt.verifyer.verify(
                 password.toCharArray,
                 userInfos.head.require("password").as[String]
               )
-              println(passwordVerify)
               if passwordVerify.verified then
                 val tokenId: String = UUID.randomUUID().toString
                 users
@@ -99,8 +104,13 @@ class AuthenticationModel(users: PersistentCollection with MongoDBQueryLanguage)
                     )
                   )
                   .fold(
-                    exception => promise.fail(exception),
-                    success => promise.complete(tokenId)
+                    exception =>
+                      promise.fail(exception)
+                      context.log.info(s"Failed logging user $username.")
+                    ,
+                    success =>
+                      promise.complete(tokenId)
+                      context.log.info(s"User $username successfully logged in.")
                   )
               else promise.fail(IncorrectPasswordException())
             else promise.fail(UserNotFoundException())
@@ -109,6 +119,7 @@ class AuthenticationModel(users: PersistentCollection with MongoDBQueryLanguage)
 
   override def getUserInformation(username: String): Future[User] =
     context.vertx.executeBlocking { promise =>
+      context.log.info(s"Getting user information $username...")
       users
         .read(
           ReadQuery(
@@ -117,13 +128,19 @@ class AuthenticationModel(users: PersistentCollection with MongoDBQueryLanguage)
           )
         )
         .fold(
-          exception => promise.fail(UserNotFoundException()),
-          userInfos => promise.complete(userInfos.head.as[User])
+          exception =>
+            promise.fail(UserNotFoundException())
+            context.log.info(s"Failed getting user $username information.")
+          ,
+          userInfos =>
+            promise.complete(userInfos.head.as[User])
+            context.log.info(s"User $username successfully got information.")
         )
     }
 
   override def updatePassword(username: String, password: String): Future[Unit] =
     context.vertx.executeBlocking { promise =>
+      context.log.info(s"Updating password $username...")
       users
         .read(
           ReadQuery(
@@ -143,8 +160,13 @@ class AuthenticationModel(users: PersistentCollection with MongoDBQueryLanguage)
                   )
                 )
                 .fold(
-                  exception => promise.fail(exception),
-                  success => promise.complete()
+                  exception =>
+                    promise.fail(exception)
+                    context.log.info("Failed updating password.")
+                  ,
+                  success =>
+                    promise.complete()
+                    context.log.info("Password successfully updated.")
                 )
             else promise.fail(UserNotFoundException())
         )
@@ -152,6 +174,7 @@ class AuthenticationModel(users: PersistentCollection with MongoDBQueryLanguage)
 
   override def validateToken(tokenId: String): Future[String] =
     context.vertx.executeBlocking { promise =>
+      context.log.info("Validating token...")
       users
         .read(
           ReadQuery(
@@ -160,24 +183,16 @@ class AuthenticationModel(users: PersistentCollection with MongoDBQueryLanguage)
           )
         )
         .fold(
-          exception => promise.fail(exception),
+          exception =>
+            promise.fail(exception)
+            context.log.info("Failed validating password.")
+          ,
           userInfos =>
             if userInfos.nonEmpty then
-              println(userInfos.head)
-              println(userInfos.head.require("username").as[String])
-              println(
-                userInfos.head.require("_id").asObjectId.getValue
-              )
-              println(ZonedDateTime.now.plus(30, ChronoUnit.MINUTES))
-
               val date: Instant = userInfos.head.require("token.expiration").as[Instant]
               if Instant.now().isBefore(date) then
-                println("token is not expired")
-                println(userInfos.head.require("username").as[String])
                 promise.complete(userInfos.head.require("username").as[String])
-              else
-                println("token expired!")
-                promise.fail(ExpiredTokenException())
+              else promise.fail(ExpiredTokenException())
             else promise.fail(ExpiredTokenException())
         )
 
@@ -185,6 +200,7 @@ class AuthenticationModel(users: PersistentCollection with MongoDBQueryLanguage)
 
   override def revokeToken(tokenId: String): Future[Unit] =
     context.vertx.executeBlocking { promise =>
+      context.log.info("Revoking token...")
       users
         .update(
           UpdateQuery(
@@ -193,7 +209,12 @@ class AuthenticationModel(users: PersistentCollection with MongoDBQueryLanguage)
           )
         )
         .fold(
-          exception => promise.fail(exception),
-          success => promise.complete()
+          exception =>
+            promise.fail(exception)
+            context.log.info("Failed revoking token")
+          ,
+          success =>
+            promise.complete()
+            context.log.info("Token successfully revoked")
         )
     }
