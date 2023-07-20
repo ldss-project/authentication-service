@@ -1,26 +1,22 @@
 package io.github.jahrim.chess.authentication.service.components.adapters.http
 
 import io.github.jahrim.chess.authentication.service.components.adapters.http.handlers.LogHandler
+import io.github.jahrim.chess.authentication.service.components.data.codecs.Codecs.{*, given}
 import io.github.jahrim.chess.authentication.service.components.ports.AuthenticationPort
 import io.github.jahrim.chess.authentication.service.components.exceptions.UserNotFoundException
 import io.github.jahrim.chess.authentication.service.components.exceptions.IncorrectPasswordException
 import io.github.jahrim.chess.authentication.service.components.exceptions.MalformedInputException
 import io.github.jahrim.chess.authentication.service.components.exceptions.ExpiredTokenException
-import io.github.jahrim.chess.authentication.service.components.data.User
 import io.github.jahrim.chess.authentication.service.util.extension.JsonObjectExtension.*
 import io.github.jahrim.chess.authentication.service.util.extension.RoutingContextExtension.*
 import io.github.jahrim.chess.authentication.service.util.extension.VertxFutureExtension.*
-import io.github.jahrim.hexarc.persistence.bson.codec
-import io.github.jahrim.hexarc.persistence.bson.dsl.BsonDSL.*
 import io.github.jahrim.hexarc.persistence.bson.dsl.BsonDSL.{*, given}
-import io.github.jahrim.hexarc.persistence.bson.codec.standard.StringCodec.stringToBson
-import io.github.jahrim.hexarc.persistence.bson.codec.standard.StringCodec.bsonToString
 import io.github.jahrim.hexarc.architecture.vertx.core.components.{Adapter, AdapterContext}
 import io.vertx.core.Handler
 import io.vertx.core.http.{HttpServerOptions, HttpServerResponse}
 import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.ext.web.{Router, RoutingContext}
-import scala.util.Try
+
 import java.lang.Exception
 
 class AuthenticationHttpAdapter(
@@ -45,8 +41,8 @@ class AuthenticationHttpAdapter(
       .handler { message =>
         future {
           val username: String = message.requirePathParam("username")
-          val email: String = message.requireBodyParam("user.email")
-          val password: String = message.requireBodyParam("user.password")
+          val email: String = message.requireBodyParam("user.email").as[String]
+          val password: String = message.requireBodyParam("user.password").as[String]
           (username, email, password)
         }
           .compose { context.api.registerUser(_, _, _) }
@@ -59,7 +55,7 @@ class AuthenticationHttpAdapter(
               }
             }).encode()
           }
-          .onSuccess { ok(message) }
+          .onSuccess { json => message.sendJson(json) }
           .onFailure { fail(message) }
       }
 
@@ -68,7 +64,7 @@ class AuthenticationHttpAdapter(
       .handler { message =>
         future {
           val username: String = message.requirePathParam("username")
-          val password: String = message.requireBodyParam("user.password")
+          val password: String = message.requireBodyParam("user.password").as[String]
           (username, password)
         }
           .compose { context.api.loginUser(_, _) }
@@ -98,12 +94,7 @@ class AuthenticationHttpAdapter(
             context.api.getUserInformation(_)
           }
           .map { user =>
-            bsonToJson(bson {
-              "user" :: bson {
-                "username" :: user.username
-                "email" :: user.email
-              }
-            }).encode()
+            bsonToJson(bson {"user" :: user}).encode()
           }
           .onSuccess { json => message.sendJson(json) }
           .onFailure {
@@ -116,7 +107,7 @@ class AuthenticationHttpAdapter(
       .handler { message =>
         future {
           val username: String = message.requirePathParam("username")
-          val password: String = message.requireBodyParam("user.password")
+          val password: String = message.requireBodyParam("user.password").as[String]
           (username, password)
         }
           .compose { context.api.updatePassword(_, _) }
@@ -154,13 +145,6 @@ class AuthenticationHttpAdapter(
         }
           .compose {
             context.api.revokeToken(_)
-          }
-          .map { user =>
-            bsonToJson(bson {
-              "user" :: bson {
-                "username" :: user
-              }
-            }).encode()
           }
           .onSuccess {
             ok(message)

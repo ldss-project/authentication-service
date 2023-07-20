@@ -9,4 +9,4 @@ trait AuthenticationPort extends Port:
   def getUserInformation(username: String): Future[User]
   def updatePassword(username: String, password: String): Future[Unit]
   def validateToken(tokenId: String): Future[String]
-  def revokeToken(tokenId: String): Future[String]
+  def revokeToken(tokenId: String): Future[Unit]

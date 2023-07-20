@@ -1,7 +1,7 @@
 package io.github.jahrim.chess.authentication.service.components.ports
 
 import at.favre.lib.crypto.bcrypt.BCrypt
-import com.mongodb.client.model.Filters
+import com.mongodb.client.model.{Filters, Projections}
 import com.mongodb.client.model.Updates.*
 import com.mongodb.client.{MongoClients, MongoCollection}
 import com.mongodb.{ConnectionString, MongoClientSettings, ServerApi, ServerApiVersion}
@@ -12,13 +12,21 @@ import io.github.jahrim.chess.authentication.service.components.exceptions.Incor
 import io.github.jahrim.chess.authentication.service.components.data.*
 import io.github.jahrim.chess.authentication.service.components.*
 import io.github.jahrim.chess.authentication.service.components.adapters.http.AuthenticationHttpAdapter
+import io.github.jahrim.chess.authentication.service.components.data.codecs.Codecs.{*, given}
 import io.github.jahrim.hexarc.architecture.vertx.core.components.PortContext
 import io.github.jahrim.hexarc.architecture.vertx.core.dsl.VertxDSL.*
-import io.github.jahrim.hexarc.persistence.bson.PersistentDocumentCollection
 import io.github.jahrim.hexarc.persistence.bson.dsl.BsonDSL.{*, given}
 import io.vertx.core.{Future, Promise, Vertx}
 import org.bson.{BsonDocument, BsonTimestamp, BsonValue, Document}
 import io.github.jahrim.chess.authentication.service.components.exceptions.*
+import io.github.jahrim.hexarc.persistence.PersistentCollection
+import io.github.jahrim.hexarc.persistence.mongodb.language.MongoDBQueryLanguage
+import io.github.jahrim.hexarc.persistence.mongodb.language.queries.{
+  CreateQuery,
+  ReadQuery,
+  UpdateQuery
+}
+
 import java.nio.charset.StandardCharsets
 import java.sql.Timestamp
 import java.time.temporal.ChronoUnit
@@ -26,7 +34,8 @@ import java.time.{Instant, ZonedDateTime}
 import java.util.{Date, UUID}
 import scala.util.{Failure, Random, Using}
 
-class AuthenticationModel(users: PersistentDocumentCollection) extends AuthenticationPort:
+class AuthenticationModel(users: PersistentCollection with MongoDBQueryLanguage)
+    extends AuthenticationPort:
   override protected def init(context: PortContext): Unit = {}
 
   override def registerUser(
@@ -40,24 +49,30 @@ class AuthenticationModel(users: PersistentDocumentCollection) extends Authentic
       val randomToken = UUID.randomUUID().toString
       println(s"randomToken: $randomToken")
       users
-        .create(bson {
-          "username" :: username
-          "password" :: hashString
-          "email" :: email
-          "token" :: bson {
-            "id" :: randomToken
-            "expiration" :: ZonedDateTime.now.plus(30, ChronoUnit.MINUTES)
-          }
-        })
-        .fold(
-          exception => promise.fail(exception),
-          success => promise.complete(randomToken)
+        .create(
+          CreateQuery(
+            bson {
+              "username" :: username
+              "password" :: hashString
+              "email" :: email
+              "token" :# {
+                "id" :: randomToken
+                "expiration" :: Instant.now.plus(30, ChronoUnit.MINUTES)
+              }
+            }
+          )
         )
+        .fold(exception => promise.fail(exception), success => promise.complete(randomToken))
     }
   override def loginUser(username: String, password: String): Future[String] =
     context.vertx.executeBlocking { promise =>
       users
-        .read(Filters.eq("username", username))
+        .read(
+          ReadQuery(
+            Filters.eq("username", username),
+            Projections.include("password")
+          )
+        )
         .fold(
           exception => promise.fail(exception),
           userInfos =>
@@ -72,12 +87,14 @@ class AuthenticationModel(users: PersistentDocumentCollection) extends Authentic
                 val tokenId: String = UUID.randomUUID().toString
                 users
                   .update(
-                    Filters.eq("username", username),
-                    combine(
-                      set("token.id", tokenId),
-                      set(
-                        "token.expiration",
-                        Instant.now.plus(30, ChronoUnit.MINUTES)
+                    UpdateQuery(
+                      Filters.eq("username", username),
+                      combine(
+                        set("token.id", tokenId),
+                        set(
+                          "token.expiration",
+                          Instant.now.plus(30, ChronoUnit.MINUTES)
+                        )
                       )
                     )
                   )
@@ -93,86 +110,90 @@ class AuthenticationModel(users: PersistentDocumentCollection) extends Authentic
   override def getUserInformation(username: String): Future[User] =
     context.vertx.executeBlocking { promise =>
       users
-        .read(bson { "username" :: username })
+        .read(
+          ReadQuery(
+            Filters.eq("username", username),
+            Projections.include("username", "email")
+          )
+        )
         .fold(
           exception => promise.fail(UserNotFoundException()),
-          userInfos =>
-            promise.complete(
-              User(
-                userInfos.head.require("username"),
-                userInfos.head.require("email")
-              )
-            )
+          userInfos => promise.complete(userInfos.head.as[User])
         )
     }
 
   override def updatePassword(username: String, password: String): Future[Unit] =
     context.vertx.executeBlocking { promise =>
       users
-        .update(
-          Filters.eq("username", username),
-          combine(
-            set("password", BCrypt.withDefaults.hashToString(10, password.toCharArray))
+        .read(
+          ReadQuery(
+            Filters.eq("username", username),
+            Projections.include("username", "password")
           )
         )
         .fold(
-          exception => promise.fail(UserNotFoundException()),
-          success => promise.complete()
+          exception => promise.fail(exception),
+          userInfos =>
+            if userInfos.nonEmpty then
+              users
+                .update(
+                  UpdateQuery(
+                    Filters.eq("username", username),
+                    set("password", BCrypt.withDefaults.hashToString(10, password.toCharArray))
+                  )
+                )
+                .fold(
+                  exception => promise.fail(exception),
+                  success => promise.complete()
+                )
+            else promise.fail(UserNotFoundException())
         )
     }
 
   override def validateToken(tokenId: String): Future[String] =
     context.vertx.executeBlocking { promise =>
       users
-        .read(Filters.eq("token.id", tokenId))
+        .read(
+          ReadQuery(
+            Filters.eq("token.id", tokenId),
+            Projections.include("username", "token.expiration")
+          )
+        )
         .fold(
-          exception => promise.fail(exception.getMessage),
+          exception => promise.fail(exception),
           userInfos =>
-            println(userInfos.head)
-            println(userInfos.head.require("username").as[String])
-            println(
-              userInfos.head.require("_id").asObjectId.getValue
-            )
-            println(ZonedDateTime.now.plus(30, ChronoUnit.MINUTES))
-
-            val date: ZonedDateTime = userInfos.head.require("token.expiration")
-            if ZonedDateTime.now().isBefore(date) then {
-              println("token is not expired")
+            if userInfos.nonEmpty then
+              println(userInfos.head)
               println(userInfos.head.require("username").as[String])
-              promise.complete(userInfos.head.require("username").as[String])
-            } else
-              println("token expired!")
-              promise.fail(ExpiredTokenException())
+              println(
+                userInfos.head.require("_id").asObjectId.getValue
+              )
+              println(ZonedDateTime.now.plus(30, ChronoUnit.MINUTES))
+
+              val date: Instant = userInfos.head.require("token.expiration").as[Instant]
+              if Instant.now().isBefore(date) then
+                println("token is not expired")
+                println(userInfos.head.require("username").as[String])
+                promise.complete(userInfos.head.require("username").as[String])
+              else
+                println("token expired!")
+                promise.fail(ExpiredTokenException())
+            else promise.fail(ExpiredTokenException())
         )
 
     }
 
-  override def revokeToken(tokenId: String): Future[String] =
+  override def revokeToken(tokenId: String): Future[Unit] =
     context.vertx.executeBlocking { promise =>
       users
-        .read(
-          Filters.eq("token.id", tokenId)
+        .update(
+          UpdateQuery(
+            Filters.eq("token.id", tokenId),
+            unset("token.id")
+          )
         )
         .fold(
-          exception => promise.fail(UserNotFoundException()),
-          userInfo =>
-            val date: ZonedDateTime = userInfo.head.require("token.expiration")
-            if ZonedDateTime.now().isBefore(date) then {
-              println("token is not expired")
-              println(userInfo.head.require("username").as[String])
-              promise.fail("token is not expired")
-            } else {
-              println("token expired!")
-              users.update(
-                Filters.eq("token.id", tokenId),
-                combine(
-                  unset("token.id")
-                )
-              )
-              promise.complete(userInfo.head.require("username").as[String]) // non visualizza output su postman??
-            }
+          exception => promise.fail(exception),
+          success => promise.complete()
         )
     }
-object AuthenticationModel:
-
-  private case class User(email: String, password: String)
