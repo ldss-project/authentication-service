@@ -33,6 +33,12 @@ import java.time.{Instant, ZonedDateTime}
 import java.util.{Date, UUID}
 import scala.util.{Failure, Random, Using}
 
+
+/**
+ * Business logic of an [[AuthenticationPort]].
+ * @param users the [[PersistentCollection]] used by the business logic to
+ *              store the users' information.
+ */
 class AuthenticationModel(users: PersistentCollection with MongoDBQueryLanguage)
     extends AuthenticationPort:
   override protected def init(context: PortContext): Unit = {}

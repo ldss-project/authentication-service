@@ -19,6 +19,11 @@ import io.vertx.ext.web.{Router, RoutingContext}
 
 import java.lang.Exception
 
+/**
+ * An [[Adapter]] for the authentication service, that allows interactions through
+ * the http protocol with the [[AuthenticationPort]].
+ * @param options the specified http options.
+ */
 class AuthenticationHttpAdapter(
     options: HttpServerOptions = new HttpServerOptions:
       setHost("localhost")
