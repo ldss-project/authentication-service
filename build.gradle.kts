@@ -1,9 +1,9 @@
 // ### Project Information #############################################################################################
-private class ProjectInfo { // TODO change project info
+private class ProjectInfo {
     val longName: String = "Chess Authentication service"
-    val description: String = "The service which handles the authentication to the application."
+    val description: String = "A service which handles registration and authentication in an application."
 
-    val repositoryOwner: String = "madina"
+    val repositoryOwner: String = "ldss-project"
     val repositoryName: String = "authentication-service"
 
     val artifactGroup: String = "io.github.jahrim.chess"
@@ -93,7 +93,6 @@ publishing {
     publications {
         withType<MavenPublication> {
             pom {
-                // TODO change developers
                 developers {
                     developer {
                         name.set("Madina Kentpayeva")
