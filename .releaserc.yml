@@ -10,3 +10,9 @@ plugins:
 
   # Publish on GitHub
   - "@semantic-release/github"
+
+  # Publish on Docker
+  - - '@codedependant/semantic-release-docker'
+    - dockerTags: ["latest", "{{version}}"]
+      dockerImage: "jahrim/io.github.jahrim.chess.authentication-service"
+      dockerFile: "Dockerfile"
