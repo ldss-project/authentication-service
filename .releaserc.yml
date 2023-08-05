@@ -9,7 +9,9 @@ plugins:
   - "@semantic-release/changelog"
 
   # Publish on GitHub
-  - "@semantic-release/github"
+  - - "@semantic-release/github"
+    - assets:
+        - path: "build/libs/*.jar"
 
   # Publish on Docker
   - - '@codedependant/semantic-release-docker'
