@@ -1,21 +1,19 @@
 package io.github.jahrim.chess.authentication.service.main
 
 import io.github.jahrim.chess.authentication.service.components.adapters.http.AuthenticationHttpAdapter
-import io.github.jahrim.chess.authentication.service.components.adapters.http.handlers.LogHandler
 import io.github.jahrim.chess.authentication.service.components.ports.{
   AuthenticationModel,
   AuthenticationPort
 }
-import io.github.jahrim.hexarc.persistence.mongodb.MongoDBPersistentCollection
-import org.rogach.scallop.*
 import io.github.jahrim.hexarc.architecture.vertx.core.dsl.VertxDSL.*
-import io.vertx.core.{Future, Vertx}
-import io.github.jahrim.hexarc.architecture.vertx.core.components.{Adapter, AdapterContext}
+import io.github.jahrim.hexarc.persistence.mongodb.MongoDBPersistentCollection
+import io.vertx.core.Vertx
+import io.vertx.core.http.HttpServerOptions
+import org.rogach.scallop.*
 
 /** Main of the application. */
 @main def main(args: String*): Unit =
   val arguments: Args = Args(args)
-  println("Hello world!")
 
   DeploymentGroup.deploySingle(Vertx.vertx()) {
     new Service:
@@ -30,7 +28,13 @@ import io.github.jahrim.hexarc.architecture.vertx.core.components.{Adapter, Adap
           ).get
         )
 
-        new Adapter(AuthenticationHttpAdapter())
+        new Adapter(
+          adapter = AuthenticationHttpAdapter(
+            new HttpServerOptions:
+              setHost(arguments.httpHost())
+              setPort(arguments.httpPort())
+          )
+        )
   }
 
 /**
