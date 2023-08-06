@@ -10,7 +10,7 @@ publish-on-central-version = "5.0.7"                # simplifies publishing arti
 scallop-version = "4.1.0"                           # cli argument parser for scala
 vertx-version = "4.4.4"                             # event-loop architecture framework
 hexarc-version = "0.4.1"                            # hexagonal architecture framework
-scala-bcrypt-version = "0.10.2"                     # scala bcrypt password hashing
+bcrypt-version = "0.4"                              # bcrypt password hashing
 # insert the version of the dependencies here...
 
 [libraries]
@@ -22,7 +22,7 @@ scalafmt-config = { module = "org.scalameta:scalafmt-config_2.13", version.ref =
 scallop = { module = "org.rogach:scallop_3", version.ref = "scallop-version" }
 vertx-web = {module = "io.vertx:vertx-web", version.ref = "vertx-version" }
 hexarc = { module = "io.github.jahrim:hexarc", version.ref = "hexarc-version" }
-bcrypt = { module = "at.favre.lib:bcrypt", version.ref = "scala-bcrypt-version"}
+bcrypt = { module = "org.mindrot:jbcrypt", version.ref = "bcrypt-version" }
 # insert the dependencies here...
 
 [bundles]

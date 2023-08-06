@@ -21,6 +21,7 @@ private val projectInfo: ProjectInfo = ProjectInfo()
 // ### Build Configuration #############################################################################################
 plugins {
     with(libs.plugins){
+        `java-library`
         scala
         application
         alias(spotless)
@@ -36,8 +37,8 @@ dependencies {
     compileOnly(libs.bundles.scalafmt)
     implementation(libs.scala)
     implementation(libs.scallop)
-    implementation(libs.vertx.web)
     implementation(libs.hexarc)
+    implementation(libs.vertx.web)
     implementation(libs.bcrypt)
     testImplementation(libs.scalatest)
     testImplementation(libs.scalatestplusjunit)
@@ -45,6 +46,7 @@ dependencies {
 
 application {
     mainClass.set(projectInfo.implementationClass)
+
     val httpHost: String? by project
     val httpPort: String? by project
     val mongoDBConnection: String? by project
@@ -58,7 +60,6 @@ application {
         mongoDBCollection?.apply { args("--mongodb-collection", this) }
     }
 }
-
 
 spotless {
     isEnforceCheck = false

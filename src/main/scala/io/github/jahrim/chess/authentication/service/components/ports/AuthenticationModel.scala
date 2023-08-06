@@ -1,6 +1,5 @@
 package io.github.jahrim.chess.authentication.service.components.ports
 
-import at.favre.lib.crypto.bcrypt.BCrypt
 import com.mongodb.client.model.{Filters, Projections}
 import com.mongodb.client.model.Updates.*
 import com.mongodb.client.{MongoClients, MongoCollection}
@@ -25,7 +24,7 @@ import io.github.jahrim.hexarc.persistence.mongodb.language.queries.{
   ReadQuery,
   UpdateQuery
 }
-
+import org.mindrot.jbcrypt.BCrypt
 import java.nio.charset.StandardCharsets
 import java.sql.Timestamp
 import java.time.temporal.ChronoUnit
@@ -45,11 +44,11 @@ class AuthenticationModel(users: PersistentCollection with MongoDBQueryLanguage)
   override def registerUser(
       username: String,
       email: String,
-      passwordInput: String
+      password: String
   ): Future[String] =
     context.vertx.executeBlocking { promise =>
       context.log.info(s"Registering user $username...")
-      val hashString = BCrypt.withDefaults.hashToString(10, passwordInput.toCharArray)
+      val hashString = BCrypt.hashpw(password, BCrypt.gensalt())
       val randomToken = UUID.randomUUID.toString
       users
         .create(
@@ -89,11 +88,7 @@ class AuthenticationModel(users: PersistentCollection with MongoDBQueryLanguage)
           exception => promise.fail(exception),
           userInfos =>
             if userInfos.nonEmpty then
-              val passwordVerify = BCrypt.verifyer.verify(
-                password.toCharArray,
-                userInfos.head.require("password").as[String]
-              )
-              if passwordVerify.verified then
+              if BCrypt.checkpw(password, userInfos.head.require("password").as[String]) then
                 val tokenId: String = UUID.randomUUID().toString
                 users
                   .update(
@@ -161,7 +156,7 @@ class AuthenticationModel(users: PersistentCollection with MongoDBQueryLanguage)
                 .update(
                   UpdateQuery(
                     Filters.eq("username", username),
-                    set("password", BCrypt.withDefaults.hashToString(10, password.toCharArray))
+                    set("password", BCrypt.hashpw(password, BCrypt.gensalt()))
                   )
                 )
                 .fold(
