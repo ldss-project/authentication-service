@@ -73,6 +73,15 @@ gitSemVer {
     assignGitSemanticVersion()
 }
 
+tasks.jar {
+    dependsOn(configurations.runtimeClasspath)
+    from(sourceSets.main.get().output)
+    from(configurations.runtimeClasspath.get().filter { it.name.endsWith("jar") }.map { zipTree(it) })
+
+    manifest.attributes["Main-Class"] = projectInfo.implementationClass
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 tasks.javadocJar {
     dependsOn(tasks.scaladoc)
     from(tasks.scaladoc.get().destinationDir)
