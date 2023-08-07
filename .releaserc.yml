@@ -8,6 +8,20 @@ plugins:
   - "@semantic-release/release-notes-generator"
   - "@semantic-release/changelog"
 
+  # Executes a custom command for publishing
+  - - "@semantic-release/exec"
+      # Builds the project with the new evaluated version (creating an annotated tag with the
+      # new version and deleting it in order to not conflict with the other plugins)
+    - prepareCmd: |
+        git tag -a ${nextRelease.version} -f -m ${nextRelease.version}
+        chmod 777 ./gradlew
+        ./gradlew build
+        git tag -d ${nextRelease.version}
+        git pull --tags
+      # Publish on Maven
+      publishCmd: |
+        ./gradlew publish --no-parallel
+
   # Publish on GitHub
   - - "@semantic-release/github"
     - assets:

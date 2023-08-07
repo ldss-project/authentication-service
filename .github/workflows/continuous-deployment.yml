@@ -43,16 +43,8 @@ jobs:
       # Validate the gradle wrapper to void supply chain attacks from pull-request that changes the wrapper
       - name: Validate Gradle Wrapper
         uses: gradle/wrapper-validation-action@v1
-      # Build the project producing the artifacts
-      - name: Build Gradle Project
-        run: |
-          chmod 777 ./gradlew
-          ./gradlew build
-      # Publish artifacts on GitHub and Docker
-      - name: Publish on GitHub and Docker
+      # Publish artifacts on Maven, GitHub and Docker
+      - name: Publish on Maven, GitHub and Docker
         run: |
           npm clean-install
           npx semantic-release
-      # Publish artifacts on Maven
-      - name: Publish on Maven
-        run: ./gradlew publish --no-parallel
