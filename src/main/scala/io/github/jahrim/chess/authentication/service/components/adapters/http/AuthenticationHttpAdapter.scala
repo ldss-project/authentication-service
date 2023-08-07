@@ -14,26 +14,28 @@ import io.github.jahrim.hexarc.persistence.bson.dsl.BsonDSL.{*, given}
 import io.github.jahrim.hexarc.architecture.vertx.core.components.{Adapter, AdapterContext}
 import io.vertx.core.Handler
 import io.vertx.core.http.{HttpServerOptions, HttpServerResponse}
-import io.vertx.ext.web.handler.BodyHandler
+import io.vertx.ext.web.handler.{BodyHandler, CorsHandler}
 import io.vertx.ext.web.{Router, RoutingContext}
+import scala.jdk.CollectionConverters.SeqHasAsJava
 
 import java.lang.Exception
 
 /**
  * An [[Adapter]] for the authentication service, that allows interactions through
  * the http protocol with the [[AuthenticationPort]].
- * @param options the specified http options.
+ * @param httpOptions the specified http options.
+ * @param allowedOrigins a sequence of sites that are allowed to use the api of this service.
  */
 class AuthenticationHttpAdapter(
-    options: HttpServerOptions = new HttpServerOptions:
-      setHost("localhost")
-      setPort(8080)
+    httpOptions: HttpServerOptions = HttpServerOptions().setHost("localhost").setPort(8080),
+    allowedOrigins: Seq[String] = Seq()
 ) extends Adapter[AuthenticationPort]:
   override protected def init(context: AdapterContext[AuthenticationPort]): Unit =
     val router = Router.router(context.vertx)
 
     router
       .route()
+      .handler(CorsHandler.create().addOrigins(allowedOrigins.asJava))
       .handler(BodyHandler.create())
       .handler(LogHandler(context.log.info))
 
@@ -160,7 +162,7 @@ class AuthenticationHttpAdapter(
       }
 
     context.vertx
-      .createHttpServer(options)
+      .createHttpServer(httpOptions)
       .requestHandler(router)
       .listen(_ => context.log.info("The server is up"))
 

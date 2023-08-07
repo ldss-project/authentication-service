@@ -47,17 +47,13 @@ dependencies {
 application {
     mainClass.set(projectInfo.implementationClass)
 
-    val httpHost: String? by project
-    val httpPort: String? by project
-    val mongoDBConnection: String? by project
-    val mongoDBDatabase: String? by project
-    val mongoDBCollection: String? by project
     tasks.withType(JavaExec::class.java){
-        httpHost?.apply { args("--http-host", this) }
-        httpPort?.apply { args("--http-port", this) }
-        mongoDBConnection?.apply { args("--mongodb-connection", this) }
-        mongoDBDatabase?.apply { args("--mongodb-database", this) }
-        mongoDBCollection?.apply { args("--mongodb-collection", this) }
+        properties["httpHost"]?.apply { args("--http-host", this) }
+        properties["httpPort"]?.apply { args("--http-port", this) }
+        properties["allowedOrigins"]?.apply { args("--allowed-origins", this) }
+        properties["mongoDBConnection"]?.apply { args("--mongodb-connection", this) }
+        properties["mongoDBDatabase"]?.apply { args("--mongodb-database", this) }
+        properties["mongoDBCollection"]?.apply { args("--mongodb-collection", this) }
     }
 }
 
