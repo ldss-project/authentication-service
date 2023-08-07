@@ -30,9 +30,10 @@ import org.rogach.scallop.*
 
         new Adapter(
           adapter = AuthenticationHttpAdapter(
-            new HttpServerOptions:
-              setHost(arguments.httpHost())
-              setPort(arguments.httpPort())
+            httpOptions = HttpServerOptions()
+              .setHost(arguments.httpHost())
+              .setPort(arguments.httpPort()),
+            allowedOrigins = arguments.allowedOrigins()
           )
         )
   }
@@ -49,14 +50,20 @@ class Args(private val arguments: Seq[String]) extends ScallopConf(arguments):
     name = "http-host",
     descr = "The server host for the http adapter of this service.",
     default = Some("localhost"),
-    required = true
+    required = false
   )
   val httpPort: ScallopOption[Int] = opt[Int](
     name = "http-port",
     descr = "The server port for the http adapter of this service.",
     default = Some(8080),
-    required = true
+    required = false
   )
+  val allowedOrigins: ScallopOption[Seq[String]] = opt[String](
+    name = "allowed-origins",
+    descr = "A list of colon separated origins that are allowed to access this service.",
+    default = Some(""),
+    required = false
+  ).map(_.split(";").toSeq)
   val mongoDBConnection: ScallopOption[String] = opt[String](
     name = "mongodb-connection",
     descr = "The connection string to the mongodb instance used by this service.",
@@ -66,12 +73,12 @@ class Args(private val arguments: Seq[String]) extends ScallopConf(arguments):
     name = "mongodb-database",
     descr = "The database within the mongodb instance used by this service.",
     default = Some("authentication"),
-    required = true
+    required = false
   )
   val mongoDBCollection: ScallopOption[String] = opt[String](
     name = "mongodb-collection",
     descr = "The collection within the mongodb database used by this service.",
     default = Some("users"),
-    required = true
+    required = false
   )
   verify()
