@@ -1,4 +1,9 @@
 package io.github.jahrim.chess.authentication.service.components.exceptions
 
-/** [[Exception]] thrown when a user or a password are not found in the database. */
-class MalformedInputException extends Exception("User or password are not found in the database!")
+/**
+ * An [[AuthenticationServiceException]] triggered when the user attempts to
+ * call the api of this service with invalid input parameters.
+ *
+ * @param message a detailed description of the [[Exception]].
+ */
+class MalformedInputException(message: String) extends AuthenticationServiceException(message)
