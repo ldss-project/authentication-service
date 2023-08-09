@@ -2,9 +2,9 @@ package io.github.jahrim.chess.authentication.service.components.exceptions
 
 /**
  * An [[AuthenticationServiceException]] triggered when a user attempts to
- * log in with an incorrect password.
+ * sign in to the service with a username that is already taken.
  *
  * @param username the name of the user.
  */
-class IncorrectPasswordException(username: String)
-    extends AuthenticationServiceException(s"Incorrect password for user '$username'.")
+class UsernameAlreadyTakenException(username: String)
+    extends AuthenticationServiceException(s"User '$username' already taken.")
