@@ -16,11 +16,11 @@ trait AuthenticationPort extends Port:
    * @param username the specified username.
    * @param email    the specified email.
    * @param password the specified password.
-   * @return a [[Future]] containing the token id created for the user.
+   * @return a [[Future]] containing the session created for the user.
    *         The [[Future]] completes when the registration is completed
    *         successfully; otherwise it fails.
    */
-  def registerUser(username: String, email: String, password: String): Future[String]
+  def registerUser(username: String, email: String, password: String): Future[UserSession]
 
   /**
    * Authenticate a user with the specified username and password in
