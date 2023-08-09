@@ -1,7 +1,7 @@
 package io.github.jahrim.chess.authentication.service.components.ports
 
-import io.github.jahrim.hexarc.architecture.vertx.core.components.Port
 import io.github.jahrim.chess.authentication.service.components.data.*
+import io.github.jahrim.hexarc.architecture.vertx.core.components.Port
 import io.vertx.core.Future
 
 /**
@@ -28,11 +28,11 @@ trait AuthenticationPort extends Port:
    *
    * @param username the specified username.
    * @param password the specified password.
-   * @return a [[Future]] containing the token id created for the user.
+   * @return a [[Future]] containing the session created for the user.
    *         The [[Future]] completes when the login is completed
    *         successfully; otherwise it fails.
    */
-  def loginUser(username: String, password: String): Future[String]
+  def loginUser(username: String, password: String): Future[UserSession]
 
   /**
    * Get the profile information of the specified user in the authentication
@@ -57,20 +57,21 @@ trait AuthenticationPort extends Port:
   def updatePassword(username: String, password: String): Future[Unit]
 
   /**
-   * Validate a token with the specified token id in the authentication service.
+   * Validate the specified token in the authentication service,
+   * verifying that it is owned by the specified user.
    *
-   * @param tokenId the specified token id.
-   * @return a [[Future]] containing username of the owner of the token.
-   *         The [[Future]] completes when the token validation is completed
+   * @param token the specified token.
+   * @param username the name of the specified user.
+   * @return a [[Future]] that completes when the token validation is completed
    *         successfully; otherwise it fails.
    */
-  def validateToken(tokenId: String): Future[String]
+  def validateToken(token: Token, username: String): Future[Unit]
 
   /**
-   * Revoke a token with the specified token id in the authentication service.
+   * Revoke the specified token from the authentication service.
    *
-   * @param tokenId the specified token id.
+   * @param token the specified token.
    * @return a [[Future]] that completes when the token revocation is completed
    *         successfully; otherwise it fails.
    */
-  def revokeToken(tokenId: String): Future[Unit]
+  def revokeToken(token: Token): Future[Unit]

@@ -17,7 +17,7 @@ import org.rogach.scallop.*
 
   DeploymentGroup.deploySingle(Vertx.vertx()) {
     new Service:
-      name = "Authentication service"
+      name = "AuthenticationService"
 
       new Port[AuthenticationPort]:
         model = AuthenticationModel(
