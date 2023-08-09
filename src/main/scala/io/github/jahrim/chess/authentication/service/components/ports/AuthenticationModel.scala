@@ -45,23 +45,14 @@ class AuthenticationModel(users: PersistentCollection with MongoDBQueryLanguage)
       username: String,
       email: String,
       password: String
-  ): Future[String] =
+  ): Future[UserSession] =
     context.vertx.executeBlocking { promise =>
       context.log.info(s"Registering user $username...")
-      val hashString = BCrypt.hashpw(password, BCrypt.gensalt())
-      val randomToken = UUID.randomUUID.toString
       users
-        .create(
-          CreateQuery(
-            bson {
-              "username" :: username
-              "password" :: hashString
-              "email" :: email
-              "token" :# {
-                "id" :: randomToken
-                "expiration" :: Instant.now.plus(30, ChronoUnit.MINUTES)
-              }
-            }
+        .read(
+          ReadQuery(
+            Filters.eq("username", username),
+            Projections.include("username")
           )
         )
         .fold(
@@ -69,9 +60,31 @@ class AuthenticationModel(users: PersistentCollection with MongoDBQueryLanguage)
             promise.fail(exception)
             context.log.info(s"Failed registering user $username.")
           ,
-          success =>
-            promise.complete(randomToken)
-            context.log.info(s"User $username successfully registered.")
+          matches =>
+            if matches.isEmpty then
+              val hashString = BCrypt.hashpw(password, BCrypt.gensalt())
+              val token = Token()
+              users
+                .create(
+                  CreateQuery(
+                    bson {
+                      "username" :: username
+                      "password" :: hashString
+                      "email" :: email
+                      "token" :: token
+                    }
+                  )
+                )
+                .fold(
+                  exception =>
+                    promise.fail(exception)
+                    context.log.info(s"Failed registering user $username.")
+                  ,
+                  success =>
+                    promise.complete(UserSession(username, token))
+                    context.log.info(s"User $username successfully registered.")
+                )
+            else promise.fail(UsernameAlreadyTakenException(username))
         )
     }
   override def loginUser(username: String, password: String): Future[String] =
