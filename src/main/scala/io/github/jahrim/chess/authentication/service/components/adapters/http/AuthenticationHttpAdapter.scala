@@ -33,7 +33,7 @@ class AuthenticationHttpAdapter(
     router
       .route()
       .handler(SessionHandler.create(SessionStore.create(context.vertx)))
-      .handler(CorsHandler.create().addOrigins(allowedOrigins.asJava))
+      .handler(CorsHandler.create().addOrigins(allowedOrigins.asJava).allowCredentials(true))
       .handler(BodyHandler.create())
       .handler(LogHandler(context.log.info))
       .failureHandler(context => context.sendException(context.failure))
