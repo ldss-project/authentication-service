@@ -9,13 +9,13 @@ import io.github.jahrim.chess.authentication.service.components.exceptions.*
 import io.github.jahrim.chess.authentication.service.components.ports.AuthenticationPort
 import io.github.jahrim.hexarc.architecture.vertx.core.components.{Adapter, AdapterContext}
 import io.github.jahrim.hexarc.persistence.bson.dsl.BsonDSL.{*, given}
-import io.vertx.core.http.HttpServerOptions
 import io.vertx.ext.web.handler.{BodyHandler, CorsHandler, SessionHandler}
 import io.vertx.ext.web.sstore.SessionStore
+import io.vertx.core.http.{HttpMethod, HttpServerOptions}
 import io.vertx.ext.web.{Router, RoutingContext}
 import org.bson.{BsonDocument, BsonValue}
 
-import scala.jdk.CollectionConverters.SeqHasAsJava
+import scala.jdk.CollectionConverters.{SeqHasAsJava, SetHasAsJava}
 import scala.util.Try
 
 /**
@@ -30,10 +30,25 @@ class AuthenticationHttpAdapter(
 ) extends Adapter[AuthenticationPort]:
   override protected def init(context: AdapterContext[AuthenticationPort]): Unit =
     val router = Router.router(context.vertx)
+
+    val cors: CorsHandler =
+      CorsHandler
+        .create()
+        .addOrigins(allowedOrigins.asJava)
+        .allowCredentials(true)
+        .allowedMethods(
+          Set(
+            HttpMethod.HEAD,
+            HttpMethod.GET,
+            HttpMethod.POST,
+            HttpMethod.PUT
+          ).asJava
+        )
+
     router
       .route()
       .handler(SessionHandler.create(SessionStore.create(context.vertx)))
-      .handler(CorsHandler.create().addOrigins(allowedOrigins.asJava).allowCredentials(true))
+      .handler(cors)
       .handler(BodyHandler.create())
       .handler(LogHandler(context.log.info))
       .failureHandler(context => context.sendException(context.failure))
