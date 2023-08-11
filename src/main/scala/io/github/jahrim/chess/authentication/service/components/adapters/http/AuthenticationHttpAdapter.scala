@@ -9,12 +9,16 @@ import io.github.jahrim.chess.authentication.service.components.exceptions.*
 import io.github.jahrim.chess.authentication.service.components.ports.AuthenticationPort
 import io.github.jahrim.hexarc.architecture.vertx.core.components.{Adapter, AdapterContext}
 import io.github.jahrim.hexarc.persistence.bson.dsl.BsonDSL.{*, given}
-import io.vertx.ext.web.handler.{BodyHandler, CorsHandler, SessionHandler}
-import io.vertx.ext.web.sstore.SessionStore
-import io.vertx.core.http.{HttpMethod, HttpServerOptions}
+import io.vertx.core.http.{Cookie, CookieSameSite, HttpMethod, HttpServerOptions}
+import io.vertx.core.json.JsonObject
+import io.vertx.ext.web.handler.{BodyHandler, CorsHandler}
 import io.vertx.ext.web.{Router, RoutingContext}
 import org.bson.{BsonDocument, BsonValue}
 
+import java.time.Instant
+import java.net.{URLDecoder, URLEncoder}
+import java.nio.charset.StandardCharsets
+import java.time.temporal.ChronoUnit
 import scala.jdk.CollectionConverters.{SeqHasAsJava, SetHasAsJava}
 import scala.util.Try
 
@@ -47,7 +51,6 @@ class AuthenticationHttpAdapter(
 
     router
       .route()
-      .handler(SessionHandler.create(SessionStore.create(context.vertx)))
       .handler(cors)
       .handler(BodyHandler.create())
       .handler(LogHandler(context.log.info))
@@ -134,6 +137,8 @@ class AuthenticationHttpAdapter(
 
 /** Companion object of [[AuthenticationHttpAdapter]]. */
 object AuthenticationHttpAdapter:
+  private val SessionCookieName: String = "chess-app-session"
+
   extension (self: RoutingContext) {
 
     /** Send a '200 OK' http response. */
@@ -182,11 +187,21 @@ object AuthenticationHttpAdapter:
      * @param session the specified [[UserSession]].
      */
     private def saveSession(session: UserSession): Unit =
-      self.session.put("session", session)
+      self.response.addCookie(
+        Cookie
+          .cookie(
+            SessionCookieName,
+            URLEncoder
+              .encode(bsonToJson(session.asBson.asDocument).encode(), StandardCharsets.UTF_8)
+          )
+          .setSecure(true)
+          .setSameSite(CookieSameSite.NONE)
+          .setMaxAge(ChronoUnit.SECONDS.between(Instant.now(), session.token.expiration))
+      )
 
     /** Delete the session of this context. */
     private def deleteSession(): Unit =
-      self.session.destroy()
+      self.response.removeCookies(SessionCookieName)
 
     /**
      * Get the value of specified path parameter if present.
@@ -221,5 +236,8 @@ object AuthenticationHttpAdapter:
      * @throws UserNotAuthorizedException if the session is not present.
      */
     private def requireSession(): UserSession =
-      Option(self.session.get("session")).getOrElse(throw UserNotAuthorizedException())
+      Option(self.request.getCookie(SessionCookieName))
+        .map(cookie => URLDecoder.decode(cookie.getValue, StandardCharsets.UTF_8))
+        .map(cookieValue => jsonToBson(JsonObject(cookieValue)).as[UserSession])
+        .getOrElse(throw UserNotAuthorizedException())
   }
