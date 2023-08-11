@@ -1,6 +1,7 @@
 package io.github.jahrim.chess.authentication.service.components.adapters.http
 
-import io.github.jahrim.chess.authentication.service.components.adapters.http.AuthenticationHttpAdapter.{*, given}
+import io.github.jahrim.chess.authentication.service.components.adapters.http.AuthenticationHttpAdapter.*
+import io.github.jahrim.chess.authentication.service.components.adapters.http.AuthenticationHttpAdapter.given
 import io.github.jahrim.chess.authentication.service.components.adapters.http.handlers.LogHandler
 import io.github.jahrim.chess.authentication.service.components.data.UserSession
 import io.github.jahrim.chess.authentication.service.components.data.codecs.Codecs.given
@@ -194,8 +195,10 @@ object AuthenticationHttpAdapter:
         Cookie
           .cookie(
             SessionCookieName,
-            URLEncoder
-              .encode(bsonToJson(session.asBson.asDocument).encode(), StandardCharsets.UTF_8)
+            URLEncoder.encode(
+              bsonToJson(session.asBson.asDocument).encode(),
+              StandardCharsets.UTF_8.name()
+            )
           )
           .setSecure(true)
           .setSameSite(CookieSameSite.NONE)
@@ -240,7 +243,7 @@ object AuthenticationHttpAdapter:
      */
     private def requireSession(): UserSession =
       Option(self.request.getCookie(SessionCookieName))
-        .map(cookie => URLDecoder.decode(cookie.getValue, StandardCharsets.UTF_8))
+        .map(cookie => URLDecoder.decode(cookie.getValue, StandardCharsets.UTF_8.name()))
         .map(cookieValue => jsonToBson(JsonObject(cookieValue)).as[UserSession])
         .getOrElse(throw UserNotAuthorizedException())
   }
