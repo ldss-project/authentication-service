@@ -1,6 +1,6 @@
 package io.github.jahrim.chess.authentication.service.components.adapters.http
 
-import io.github.jahrim.chess.authentication.service.components.adapters.http.AuthenticationHttpAdapter.*
+import io.github.jahrim.chess.authentication.service.components.adapters.http.AuthenticationHttpAdapter.{*, given}
 import io.github.jahrim.chess.authentication.service.components.adapters.http.handlers.LogHandler
 import io.github.jahrim.chess.authentication.service.components.data.UserSession
 import io.github.jahrim.chess.authentication.service.components.data.codecs.Codecs.given
@@ -9,6 +9,7 @@ import io.github.jahrim.chess.authentication.service.components.exceptions.*
 import io.github.jahrim.chess.authentication.service.components.ports.AuthenticationPort
 import io.github.jahrim.hexarc.architecture.vertx.core.components.{Adapter, AdapterContext}
 import io.github.jahrim.hexarc.persistence.bson.dsl.BsonDSL.{*, given}
+import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.http.{Cookie, CookieSameSite, HttpMethod, HttpServerOptions}
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.handler.{BodyHandler, CorsHandler}
@@ -70,7 +71,7 @@ class AuthenticationHttpAdapter(
           .registerUser(username, email, password)
           .onSuccess(session =>
             message.saveSession(session)
-            message.sendBson(200, bson { "session" :: session })
+            message.sendBson(HttpResponseStatus.OK, bson { "session" :: session })
           )
           .onFailure(message.sendException)
       }
@@ -84,7 +85,7 @@ class AuthenticationHttpAdapter(
           .loginUser(username, password)
           .onSuccess(session =>
             message.saveSession(session)
-            message.sendBson(200, bson { "session" :: session })
+            message.sendBson(HttpResponseStatus.OK, bson { "session" :: session })
           )
           .onFailure(message.sendException)
       }
@@ -110,7 +111,7 @@ class AuthenticationHttpAdapter(
         context.api
           .validateToken(session.token, username)
           .compose(_ => context.api.getUserInformation(username))
-          .onSuccess(user => message.sendBson(200, bson { "user" :: user }))
+          .onSuccess(user => message.sendBson(HttpResponseStatus.OK, bson { "user" :: user }))
           .onFailure(message.sendException)
       }
 
@@ -139,11 +140,13 @@ class AuthenticationHttpAdapter(
 object AuthenticationHttpAdapter:
   private val SessionCookieName: String = "chess-app-session"
 
+  given Conversion[HttpResponseStatus, Int] = _.code()
+
   extension (self: RoutingContext) {
 
     /** Send a '200 OK' http response. */
     private def sendOk(): Unit =
-      self.response.setStatusCode(200).send()
+      self.response.setStatusCode(HttpResponseStatus.OK).send()
 
     /**
      * Send an http response with the specified status code and the specified
@@ -168,13 +171,13 @@ object AuthenticationHttpAdapter:
       throwable.printStackTrace()
       self.sendBson(
         statusCode = throwable match {
-          case _: MalformedInputException       => 400
-          case _: IncorrectPasswordException    => 400
-          case _: UsernameAlreadyTakenException => 400
-          case _: TokenExpiredException         => 403
-          case _: UserNotAuthorizedException    => 403
-          case _: UserNotFoundException         => 404
-          case _: Throwable                     => 500
+          case _: MalformedInputException       => HttpResponseStatus.BAD_REQUEST
+          case _: IncorrectPasswordException    => HttpResponseStatus.BAD_REQUEST
+          case _: UsernameAlreadyTakenException => HttpResponseStatus.BAD_REQUEST
+          case _: TokenExpiredException         => HttpResponseStatus.FORBIDDEN
+          case _: UserNotAuthorizedException    => HttpResponseStatus.FORBIDDEN
+          case _: UserNotFoundException         => HttpResponseStatus.NOT_FOUND
+          case _: Throwable                     => HttpResponseStatus.INTERNAL_SERVER_ERROR
         },
         bson = bson {
           "type" :: throwable.getClass.getSimpleName
