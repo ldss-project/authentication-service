@@ -1,0 +1,55 @@
+[{
+  "_id": {
+    "$oid": "64ad811868f8e112f8c96521"
+  },
+  "username": "vittoriogiusti",
+  "password": "$2a$10$HNRNRhKyjLGCZ3/R6Yj3QuenqLSdpRf/J4r4NvVhpNbneYtSNJoIy",
+  "email": "vittoriogiusti@mail.com",
+  "token": {
+    "id": "bb9769cc-ac0b-462b-88d0-2bbc66fe4cd1",
+    "expiration": {
+      "$date": "2023-07-14T09:23:03.861Z"
+    }
+  }
+},
+{
+  "_id": {
+    "$oid": "64ad8340bc791a2ddffc32f0"
+  },
+  "username": "pietrosbagliati",
+  "password": "$2a$10$MeUJbddRdX5sxDWFjgZ.9OyDt5MijuIff7SkwEP0ncSbzgi0UArIa",
+  "email": "pietrosbagliati@mail.com",
+  "token": {
+    "expiration": {
+      "$date": "2023-08-12T09:43:15.977Z"
+    }
+  }
+},
+{
+  "_id": {
+    "$oid": "64ad8397bc791a2ddffc32f1"
+  },
+  "username": "carlovinti",
+  "password": "$2a$10$aUtWm5OK0aLKx.fsyDK3YO6MsSODPg/H.FZsiIdZK7EWNAp/n2Mly",
+  "email": "carlovinti@mail.com",
+  "token": {
+    "id": "8c1e8501-696c-47b4-af77-c7ec1dff4f06",
+    "expiration": {
+      "$date": "2023-08-12T17:26:23.445Z"
+    }
+  }
+},
+{
+  "_id": {
+    "$oid": "64ad83dfbc791a2ddffc32f2"
+  },
+  "username": "francopersi",
+  "password": "$2a$10$vVKKsx2px/514lWvWwpMEehkPETi7yyAPc7wm0Gej6rpNh4PpDs8K",
+  "email": "francopersi@mail.com",
+  "token": {
+    "id": "59d594b4-bc31-4746-85ac-3ea98b92fedd",
+    "expiration": {
+      "$date": "2023-07-14T09:31:46.216Z"
+    }
+  }
+}]
