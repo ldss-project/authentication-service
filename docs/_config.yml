@@ -1,0 +1,5 @@
+title: "Authentication Service"
+description: A service which handles the registration and authentication of a user in an application.
+theme: just-the-docs
+
+url: https://ldss-project.github.io/authentication-service

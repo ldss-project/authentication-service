@@ -8,4 +8,6 @@
 
 ---
 
-The service which handles the registration and authentication of a user in the application.
+A service which handles the registration and authentication of a user in an application.
+
+See documentation at the [repository webpage](https://ldss-project.github.io/authentication-service).
