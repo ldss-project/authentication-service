@@ -11,7 +11,7 @@ nav_order: 1
 {: .no_toc}
 
 - TOC
-  {:toc}
+{:toc}
 
 ---
 
@@ -20,12 +20,9 @@ nav_order: 1
 L'**Authentication Service** è un servizio che gestisce la registrazione e l'autenticazione
 degli utenti all'interno di un'applicazione.
 
-Il servizio espone un contratto di tipo _REST_, disponibile al seguente
-[link](/swagger-apis/authentication-service/latest/rest).
-
 ## Implementazione
 
-L'implementazione dell' **Authentication Service** è descritta dal seguente diagramma delle classi
+L'implementazione dell'**Authentication Service** è descritta dal seguente diagramma delle classi
 UML.
 
 ![Authentication Service Class Diagram](/authentication-service/resources/images/authentication-service.png)
@@ -36,7 +33,7 @@ Come si può vedere dal diagramma, l'implementazione del servizio dipende dal fr
 In particolare, il servizio definisce due componenti principali:
 - `AuthenticationPort`: definisce le funzionalità del servizio.
 - `AuthenticationHttpAdapter`: espone alcune delle funzionalità dell'`AuthenticationPort` attraverso un
-  contratto di tipo _REST_.
+  contratto di tipo _REST_, disponibile al seguente [link](/swagger-apis/authentication-service/latest/rest).
 
 Le funzionalità definite dall'`AuthenticationPort` sono le seguenti:
 - `registerUser`: registra un nuovo utente nel servizio;
