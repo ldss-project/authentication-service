@@ -59,7 +59,10 @@ application {
 
 spotless {
     isEnforceCheck = false
-    scala { scalafmt(libs.versions.scalafmt.version.get()).configFile(".scalafmt.conf") }
+    scala {
+        scalafmt(libs.versions.scalafmt.version.get()).configFile(".scalafmt.conf")
+        licenseHeader("/*\n${file("LICENSE").readText()}\n*/", "package ")
+    }
     tasks.compileScala.get().dependsOn(tasks.spotlessApply)
 }
 
