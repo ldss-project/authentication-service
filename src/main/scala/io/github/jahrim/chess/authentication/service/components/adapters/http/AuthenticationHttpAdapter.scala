@@ -60,23 +60,26 @@ class AuthenticationHttpAdapter(
   override protected def init(context: AdapterContext[AuthenticationPort]): Unit =
     val router = Router.router(context.vertx)
 
-    val cors: CorsHandler =
-      CorsHandler
-        .create()
-        .addOrigins(allowedOrigins.asJava)
-        .allowCredentials(true)
-        .allowedMethods(
-          Set(
-            HttpMethod.HEAD,
-            HttpMethod.GET,
-            HttpMethod.POST,
-            HttpMethod.PUT
-          ).asJava
+    if allowedOrigins.nonEmpty then
+      router
+        .route()
+        .handler(
+          CorsHandler
+            .create()
+            .addOrigins(allowedOrigins.asJava)
+            .allowCredentials(true)
+            .allowedMethods(
+              Set(
+                HttpMethod.HEAD,
+                HttpMethod.GET,
+                HttpMethod.POST,
+                HttpMethod.PUT
+              ).asJava
+            )
         )
 
     router
       .route()
-      .handler(cors)
       .handler(BodyHandler.create())
       .handler(LogHandler(context.log.info))
       .failureHandler(context => context.sendException(context.failure))

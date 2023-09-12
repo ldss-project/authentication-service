@@ -86,7 +86,7 @@ class Args(private val arguments: Seq[String]) extends ScallopConf(arguments):
     descr = "A list of colon separated origins that are allowed to access this service.",
     default = Some(""),
     required = false
-  ).map(_.split(";").toSeq)
+  ).map(_.split(";").filter(_.nonEmpty).toSeq)
   val mongoDBConnection: ScallopOption[String] = opt[String](
     name = "mongodb-connection",
     descr = "The connection string to the mongodb instance used by this service.",
