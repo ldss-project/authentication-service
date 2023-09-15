@@ -114,6 +114,10 @@ In particolare, il jar permette di specificare i seguenti argomenti a linea di c
 In alternativa, un'immagine per eseguire il jar è stata pubblicata anche su [Docker](https://www.docker.com/).
 Per eseguire il servizio tramite [Docker](https://www.docker.com/) è sufficiente utilizzare il seguente comando:
 ```shell
-docker run -it jahrim/io.github.jahrim.chess.authentication-service:<version> \
---mongodb-connection MONGODB_CONNECTION_STRING
+docker run -it -p 8081:8080 jahrim/io.github.jahrim.chess.authentication-service:<version> \
+--mongodb-connection MONGODB_CONNECTION_STRING \
+--http-host 0.0.0.0 \
+--http-port 8080
 ```
+
+Dopodiché, il servizio è accessibile al seguente URL: http://localhost:8081.
