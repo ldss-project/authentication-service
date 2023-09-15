@@ -41,7 +41,7 @@ Le funzionalità definite dall'`AuthenticationPort` sono le seguenti:
 - `revokeToken`: revoca il token di un utente e quindi la sua autenticazione nel servizio;
 - `getUserInformation`: restituisce le informazioni relative a un utente del servizio;
 - `updatePassword`: aggiorna la password di un utente del servizio;
-- `validateToken`: rimuove tutte le statistiche di un utente del servizio.
+- `validateToken`: verifica la validità del token fornito da uno specifico utente del servizio.
 
 Tali funzionalità sono definite nei termini dei concetti del dominio del servizio.
 In particolare, i modelli relativi a tali concetti sono i seguenti:
@@ -57,7 +57,7 @@ dell'`AuthenticationPort` attraverso delle opportune query.
 
 L'`AuthenticationHttpAdapter` e l'`AuthenticationModel` possono generare delle eccezioni,
 modellate dalla classe `AuthenticationServiceException`. In particolare, l'utente che
-utilizza il servizio potrebbe essere notificato delle seguenti `AuthenticationServiceException`s:
+utilizza il servizio potrebbe essere notificato delle seguenti `AuthenticationServiceException`:
 - `IncorrectPasswordException`: indica all'utente che la password da lui specificata per autenticarsi
   non è corretta;
 - `MalformedInputException`: indica all'utente che l'input specificato per una certa
