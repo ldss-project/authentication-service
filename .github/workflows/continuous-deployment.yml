@@ -36,7 +36,7 @@ jobs:
         uses: actions/setup-node@v3
       # Clone the repository, with full history and submodules
       - name: Clone Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GH_TOKEN }}
           fetch-depth: 0
