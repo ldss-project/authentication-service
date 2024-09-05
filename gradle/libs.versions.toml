@@ -8,7 +8,7 @@ wartremover-version = "0.1.2"                       # code linter for scala
 git-semantic-versioning-version = "1.1.9"           # assigns a project version depending on the existing git tags
 publish-on-central-version = "5.0.7"                # simplifies publishing artifacts on maven central
 scallop-version = "4.1.0"                           # cli argument parser for scala
-vertx-version = "4.4.4"                             # event-loop architecture framework
+vertx-version = "4.5.10"                             # event-loop architecture framework
 hexarc-version = "0.4.1"                            # hexagonal architecture framework
 bcrypt-version = "0.4"                              # bcrypt password hashing
 # insert the version of the dependencies here...
